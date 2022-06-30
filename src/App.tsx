@@ -2,6 +2,7 @@ import React, {useState} from 'react';
 import './App.css';
 import TodoList, {TaskType} from "./TodoList";
 import {v1} from "uuid";
+import AddItemForm from "./AddItemForm/AddItemForm";
 
 // CRUD
 // create +
@@ -22,18 +23,14 @@ type TaskStateType = { // типизация тасок
 }
 
 function App() {
-    console.log(v1()) // => string
-    //BLL:
 
     const todoListID_1 = v1();
     const todoListID_2 = v1();
 
     const [todoList, setTodoList] = useState<Array<TodoListType>>([ // тудушки
         {id: todoListID_1, title: 'What to learn', filter: 'all'},
-        {id: todoListID_2, title: 'What a buy', filter: 'completed'}
+        {id: todoListID_2, title: 'What a buy', filter: 'all'}
     ])
-
-
     const [tasks, setTasks] = useState<TaskStateType>({ // таски для туду
         [todoListID_1]: [
             {id: v1(), title: "HTML&CSS", isDone: true},
@@ -47,7 +44,6 @@ function App() {
         ],
     })
 
-
     const removeTask = (taskID: string, todoListID: string) => {
         const copyTask = {...tasks}
         copyTask[todoListID] = tasks[todoListID].filter(el => el.id !== taskID)
@@ -56,7 +52,6 @@ function App() {
         // setState(tasks)
         // setTasks(filteredTasks)
     }
-
     const addTask = (title: string, todoListID: string) => {
         const newTask: TaskType = {
             id: v1(),
@@ -67,22 +62,26 @@ function App() {
         copyTask[todoListID] = [newTask, ...tasks[todoListID]]
         setTasks(copyTask)
     }
-
     const changeTaskStatus = (taskID: string, isDone: boolean, todoListID: string) => {
-        debugger
-        const copyTask = {...tasks} // копируем обьект тасок
-        copyTask[todoListID] = tasks[todoListID].map(t => t.id === taskID ? {...t, isDone: isDone} : t)
-        setTasks(copyTask)
-            // setTask({...tasks, todoListID: task[todolistId].filter(t => t.id !== taskId)})
+        setTasks({...tasks, [todoListID]: tasks[todoListID].map(el => el.id === taskID ? {...el, isDone: isDone} : el)})
     }
-
     const changeTodoListFilter = (filter: FilterValuesType, todoListID: string) => {
         setTodoList(todoList.map(tl => tl.id === todoListID ? {...tl, filter: filter} : tl))
     }
-
     const removeTodoList = (todoListID: string) => {
         setTodoList(todoList.filter(el => el.id !== todoListID))
         delete tasks[todoListID]
+    }
+
+    const addTodolist = (title: string) => {
+        const newTodolistID = v1()
+        const newTodolist: TodoListType = {
+            id: newTodolistID,
+            title: title,
+            filter: 'all'
+        }
+        setTodoList([newTodolist, ...todoList])
+        setTasks({...tasks, [newTodolistID]: []})
     }
 
     const todoListsComponents = todoList.map(tl => {
@@ -100,7 +99,7 @@ function App() {
                 break;
         }
 
-        return(
+        return (
             <TodoList
                 key={tl.id}
                 id={tl.id}
@@ -117,12 +116,10 @@ function App() {
     })
 
 
-
-
-
     //UI:
     return (
         <div className="App">
+            <AddItemForm addItem={addTodolist} />
             {todoListsComponents}
         </div>
     );
